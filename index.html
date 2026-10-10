@@ -1,0 +1,338 @@
+<title>Tablero Luz del Mundo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tablero de obra. Cabecera con cifras EVM, semáforo de 6 KPIs, curvas S y matriz de riesgos, cierre y lecciones. */
+:root{
+  --bg:#eef0f2; --surface:#fbfbfa; --ink:#14181d; --ink2:#4a525b; --muted:#6f7780; --line:#d8dce0; --grid:#e6e9ec;
+  --accent:#1f3a52; --accent-ink:#ffffff;
+  --pv:#2a78d6; --ev:#1baf7a; --ac:#eb6834;
+  --good:#1a7f4b; --good-bg:#e0f1e7; --warn:#9a6700; --warn-bg:#f8ecc9; --bad:#b42318; --bad-bg:#fbe3e0;
+  --na:#6f7780; --na-bg:#e9ecef;
+  --shade:rgba(31,58,82,.06);
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif; --f-body:'IBM Plex Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1317; --surface:#171c21; --ink:#eceff1; --ink2:#b5bcc3; --muted:#8c949c; --line:#2b333b; --grid:#232a31;
+  --accent:#8fb4d6; --accent-ink:#0f1317;
+  --pv:#3987e5; --ev:#199e70; --ac:#d95926;
+  --good:#5fd08f; --good-bg:#16301f; --warn:#e6b84a; --warn-bg:#3a2f12; --bad:#ff8a7e; --bad-bg:#3d1a16;
+  --na:#8c949c; --na-bg:#232a31; --shade:rgba(143,180,214,.07); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1317; --surface:#171c21; --ink:#eceff1; --ink2:#b5bcc3; --muted:#8c949c; --line:#2b333b; --grid:#232a31;
+  --accent:#8fb4d6; --accent-ink:#0f1317;
+  --pv:#3987e5; --ev:#199e70; --ac:#d95926;
+  --good:#5fd08f; --good-bg:#16301f; --warn:#e6b84a; --warn-bg:#3a2f12; --bad:#ff8a7e; --bad-bg:#3d1a16;
+  --na:#8c949c; --na-bg:#232a31; --shade:rgba(143,180,214,.07); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;font-weight:600;letter-spacing:.01em}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+header.top{background:var(--accent);color:var(--accent-ink);padding:22px 24px;border-radius:4px;display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:flex-end}
+header.top h1{font-size:clamp(28px,5vw,42px);line-height:1.05;font-weight:700}
+header.top p{margin:6px 0 0;opacity:.85;max-width:60ch}
+.stamp{font-family:var(--f-mono);font-size:12px;border:1px solid currentColor;padding:6px 10px;border-radius:3px;opacity:.9;display:flex;flex-direction:column;gap:2px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button,.seg button{font:inherit;font-size:12.5px;padding:6px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:3px;cursor:pointer}
+.tabs button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--pv);outline-offset:2px}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sec h2{font-size:22px}
+.sec .sub{margin:0;color:var(--ink2);max-width:80ch}
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.kpi4{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .l{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.stat .v{font-family:var(--f-display);font-size:34px;line-height:1.05;font-weight:600}
+.stat .n{font-size:12px;color:var(--ink2)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.kpi{border:1px solid var(--line);border-radius:3px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.kpi .hd{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.kpi .dim{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.pill{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px 2px 6px;border-radius:99px}
+.pill svg{width:14px;height:14px}
+.s-Verde{background:var(--good-bg);color:var(--good)} .s-Amarillo{background:var(--warn-bg);color:var(--warn)} .s-Rojo{background:var(--bad-bg);color:var(--bad)}
+.kpi .val{font-family:var(--f-display);font-size:40px;line-height:1;font-weight:600}
+.kpi .nm{font-weight:500}
+.kpi .meta{font-size:12.5px;color:var(--ink2);display:grid;gap:2px}
+.bar{height:6px;background:var(--grid);border-radius:3px;position:relative;overflow:hidden}
+.bar>i{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;white-space:nowrap}
+td.r,th.r{text-align:right}
+.chip{font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.chart{position:relative;width:100%}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--f-body);font-size:12px;fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:7px 10px;border-radius:3px;white-space:nowrap;z-index:5;display:none;line-height:1.45}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:18px;height:0;border-top:2.5px solid}
+.note{font-size:12.5px;color:var(--ink2);margin:0}
+.mx{display:grid;grid-template-columns:28px repeat(5,1fr);grid-template-rows:repeat(5,minmax(54px,auto)) 26px;gap:3px;font-size:12px}
+.mx .c{border-radius:2px;display:flex;flex-wrap:wrap;gap:3px;align-items:center;justify-content:center;padding:4px;min-width:0}
+.mx .ax{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11.5px}
+.zb{background:var(--good-bg)} .zm{background:var(--warn-bg)} .za{background:var(--bad-bg)}
+.rid{font-family:var(--f-mono);font-size:11px;font-weight:500;background:var(--ink);color:var(--bg);padding:1px 5px;border-radius:2px}
+.rid.mat{outline:2px solid var(--bad);outline-offset:1px}
+.two{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.dec{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.dec>div{border:1px solid var(--line);border-radius:3px;padding:12px 14px;display:grid;gap:4px;align-content:start}
+.dec h3{font-size:18px}
+.dec .ef{font-size:12.5px;color:var(--good);font-weight:500}
+.lec{display:grid;gap:0}
+.lec>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:6px 24px;padding:9px 0;border-bottom:1px solid var(--line)}
+@media(max-width:700px){.lec>div{grid-template-columns:1fr}}
+.lec b{font-weight:500}
+details summary{cursor:pointer;color:var(--ink2);font-size:12.5px}
+footer{font-size:12px;color:var(--muted);max-width:90ch}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="eyebrow" style="color:inherit;opacity:.75">Tablero de control · Maestría en Gerencia de Proyectos</div>
+    <h1>Escenario deportivo Luz del Mundo</h1>
+    <p>Construcción y adecuación de una cancha múltiple en Santa Marta, Magdalena. Seguimiento al corte, pronóstico y cierre.</p>
+    <p> Marvin Boneth Robles.</p>
+  </div>
+  <div class="stamp"><span>CORTE: DÍA HÁBIL 60 · SEMANA 12</span><span>BAC $260.000.000 COP · 22 ACTIVIDADES</span></div>
+</header>
+
+<section class="sec" aria-labelledby="h-evm">
+  <div><div class="eyebrow">Valor ganado al corte</div><h2 id="h-evm">Estado del proyecto en una mirada</h2></div>
+  <div class="kpi4" id="evm-top"></div>
+  <div class="kpi4" id="evm-var"></div>
+  <p class="note" id="evm-read"></p>
+</section>
+
+<section class="sec" aria-labelledby="h-kpi">
+  <div><div class="eyebrow">Indicadores clave</div><h2 id="h-kpi">Seis KPIs con semáforo</h2>
+  <p class="sub">Metas y umbrales propuestos para esta actividad. Cada estado lleva ícono y texto, no solo color.</p></div>
+  <div class="kpis" id="kpis"></div>
+</section>
+
+<div class="grid g2">
+<section class="sec" aria-labelledby="h-s">
+  <div><div class="eyebrow">Curva S acumulada</div><h2 id="h-s">PV, EV y AC por semana</h2></div>
+  <div class="legend"><span><i style="border-color:var(--pv);border-top-style:dashed"></i>PV plan</span><span><i style="border-color:var(--ev)"></i>EV ganado</span><span><i style="border-color:var(--ac)"></i>AC real</span></div>
+  <div class="chart" id="ch-s"></div>
+  <p class="note">Hasta S12 son datos de seguimiento simulados. La zona sombreada (S13–S21) es el resultado supuesto del plan correctivo, no un hecho observado.</p>
+</section>
+<section class="sec" aria-labelledby="h-i">
+  <div><div class="eyebrow">Eficiencia acumulada</div><h2 id="h-i">SPI y CPI por semana</h2></div>
+  <div class="legend"><span><i style="border-color:var(--pv)"></i>SPI cronograma</span><span><i style="border-color:var(--ac)"></i>CPI costos</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>Meta 1,00</span></div>
+  <div class="chart" id="ch-i"></div>
+  <p class="note">Desde la semana 3 ambos índices están por debajo de 1,00. El SPI se acerca a 1,00 al final porque el alcance se completa, no por puntualidad.</p>
+</section>
+</div>
+
+<section class="sec" aria-labelledby="h-r">
+  <div><div class="eyebrow">Riesgos</div><h2 id="h-r">Matriz de riesgos actualizada</h2>
+  <p class="sub">Ocho riesgos: 5 previstos y 3 nuevos. Tres ya se materializaron (R01 a R03). Al corte quedan tres riesgos altos residuales abiertos (R04, R06 y R08).</p></div>
+  <div class="seg tabs" role="group" aria-label="Valoración"><button id="b-res" aria-pressed="true">Residual</button><button id="b-ini" aria-pressed="false">Inicial</button></div>
+  <div class="two">
+    <div>
+      <div class="mx" id="mx"></div>
+      <p class="note" style="margin-top:8px">Probabilidad (vertical) × Impacto (horizontal). Borde rojo: materializado.</p>
+    </div>
+    <div class="tbl"><table id="rt"></table></div>
+  </div>
+</section>
+
+<div class="grid g2">
+<section class="sec" aria-labelledby="h-e">
+  <div><div class="eyebrow">Cumplimiento de entregables</div><h2 id="h-e">Aceptación al día 60</h2></div>
+  <div class="tbl"><table id="et"></table></div>
+  <p class="note">Exigibles al corte: 4. Aceptados: 4 (100%). El indicador mide pendientes a la fecha, no puntualidad; el drenaje se aceptó con 3 días de atraso.</p>
+</section>
+<section class="sec" aria-labelledby="h-a">
+  <div><div class="eyebrow">Avance físico</div><h2 id="h-a">Obra ponderada y losa deportiva</h2></div>
+  <div id="phys" style="display:grid;gap:16px"></div>
+  <p class="note">El avance físico excluye estudios, gestión predial, jornadas y cierre (presupuesto de obra: $242 millones). La losa concentra la desviación del cronograma.</p>
+</section>
+</div>
+
+<section class="sec" aria-labelledby="h-d">
+  <div><div class="eyebrow">Análisis de desviaciones y decisiones</div><h2 id="h-d">Decisiones correctivas</h2>
+  <p class="sub">Sin medidas el proyecto terminaría en el día 108,70, 3,87 días después del hito base (104,83). Con las acciones se conserva la fecha de cierre.</p></div>
+  <div class="dec" id="dec"></div>
+  <div class="two" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+    <div class="tbl"><div class="eyebrow" style="margin-bottom:6px">Hitos en días hábiles</div><table id="ht"></table></div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Pronóstico de costo (millones COP)</div><div class="tbl"><table id="ft"></table></div></div>
+  </div>
+</section>
+
+<div class="grid g2">
+<section class="sec" aria-labelledby="h-c">
+  <div><div class="eyebrow">Cierre y evaluación</div><h2 id="h-c">Cumplimiento de objetivos</h2></div>
+  <div class="tbl"><table id="ct"></table></div>
+  <p class="note">Cierre supuesto: EV = PV = $260 M, AC = $271,2 M, CV = −$11,2 M, CPI = 0,959 y SPI = 1,00. Evaluación parcialmente favorable.</p>
+</section>
+<section class="sec" aria-labelledby="h-v">
+  <div><div class="eyebrow">Control de costos</div><h2 id="h-v">De dónde viene el sobrecosto final</h2></div>
+  <div class="chart" id="ch-v"></div>
+  <p class="note">Total: $11,2 millones (4,31% sobre el BAC). El EAC por tendencia sería $278,5 millones; el plan detallado lo reduce a $271,2 millones.</p>
+</section>
+</div>
+
+<section class="sec" aria-labelledby="h-l">
+  <div><div class="eyebrow">Lecciones aprendidas</div><h2 id="h-l">Qué se aprende y quién lo aplica</h2></div>
+  <div class="lec" id="lec"></div>
+</section>
+
+<details class="sec"><summary>Ver datos semanales en tabla</summary><div class="tbl"><table id="wt"></table></div></details>
+
+<footer>Todos los datos de ejecución, costos, avances y cierre son supuestos académicos para el ejercicio; no provienen de actas, facturas ni registros de una obra real. Umbrales de semáforo propuestos para esta actividad, no prescritos por PMI, ISO ni PRINCE2. Cifras en COP. Fuente: Informe y libro de Excel de control del proyecto.</footer>
+</div>
+
+<script>
+const W=[{"s": 1, "d": 5, "pv": 6349572.086899276, "ev": 6349572.086899276, "ac": 6472021.066491112, "cpi": 0.981080256332011, "spi": 1, "fp": 0, "fpp": 0}, {"s": 2, "d": 10, "pv": 10903225.806451613, "ev": 10903225.806451613, "ac": 11103225.806451611, "cpi": 0.9819872167344569, "spi": 1, "fp": 0, "fpp": 0}, {"s": 3, "d": 15, "pv": 21080000, "ev": 19811188.81118881, "ac": 20598601.398601398, "cpi": 0.9617734926670287, "spi": 0.9398097159007974, "fp": 0.036409871120614924, "fpp": 0.041652892561983464}, {"s": 4, "d": 20, "pv": 36301052.631578945, "ev": 33672800.8833272, "ac": 35163268.31063673, "cpi": 0.9576129438781813, "spi": 0.9275984700794769, "fp": 0.09368925984845951, "fpp": 0.10454980426272292}, {"s": 5, "d": 25, "pv": 48680000, "ev": 44692307.692307696, "ac": 46838461.53846154, "cpi": 0.954179668254229, "spi": 0.9180835598255483, "fp": 0.1392244119516847, "fpp": 0.155702479338843}, {"s": 6, "d": 30, "pv": 59480000, "ev": 54132867.132867135, "ac": 56908391.60839161, "cpi": 0.9512282038363705, "spi": 0.9101020029063069, "fp": 0.17823498815234354, "fpp": 0.2003305785123967}, {"s": 7, "d": 35, "pv": 66315789.473684214, "ev": 62833333.333333336, "ac": 66175000, "cpi": 0.949502581538849, "spi": 0.9474867724867725, "fp": 0.21418732782369146, "fpp": 0.22857764245324055}, {"s": 8, "d": 40, "pv": 73677419.35483871, "ev": 69032258.06451613, "ac": 72709677.41935484, "cpi": 0.9494232475598935, "spi": 0.9369527145359019, "fp": 0.23980271927486002, "fpp": 0.2589976006398294}, {"s": 9, "d": 45, "pv": 83714285.71428573, "ev": 76981818.18181819, "ac": 81247272.72727273, "cpi": 0.9475003356756031, "spi": 0.919578032888613, "fp": 0.27265214124718257, "fpp": 0.30047225501770963}, {"s": 10, "d": 50, "pv": 95384615.38461542, "ev": 86800000, "ac": 91720000, "cpi": 0.946358482337549, "spi": 0.9099999999999997, "fp": 0.31322314049586775, "fpp": 0.348696757787667}, {"s": 11, "d": 55, "pv": 115151162.79069772, "ev": 99538461.53846154, "ac": 105430769.23076923, "cpi": 0.9441120677075733, "spi": 0.8644156005561636, "fp": 0.3658614113159568, "fpp": 0.4303767057466848}, {"s": 12, "d": 60, "pv": 134337209.30232564, "ev": 119500000, "ac": 128000000, "cpi": 0.93359375, "spi": 0.8895524971868775, "fp": 0.44834710743801653, "fpp": 0.5096578896790315}, {"s": 13, "d": 65, "pv": 153523255.81395352, "ev": 143071428.57142857, "ac": 152000000, "cpi": 0.9412593984962405, "spi": 0.9319202345787211, "fp": 0.5457497048406139, "fpp": 0.5889390736113782}, {"s": 14, "d": 70, "pv": 176078108.4728454, "ev": 163202702.7027027, "ac": 172477027.027027, "cpi": 0.9462286399285452, "spi": 0.9268767373649499, "fp": 0.6289367880276971, "fpp": 0.682140944102667}, {"s": 15, "d": 75, "pv": 221299146.51493603, "ev": 208198909.4357515, "ac": 217865410.14698905, "cpi": 0.9556308607928364, "spi": 0.9408030383962626, "fp": 0.8148715265940144, "fpp": 0.869004737665025}, {"s": 16, "d": 80, "pv": 237000000, "ev": 235581081.0810811, "ac": 245560810.8108108, "cpi": 0.9593594364802026, "spi": 0.9940130003421143, "fp": 0.9280209962028144, "fpp": 0.9338842975206612}, {"s": 17, "d": 85, "pv": 241354838.70967743, "ev": 239419354.83870965, "ac": 249467741.93548384, "cpi": 0.9597206956746622, "spi": 0.9919807538091417, "fp": 0.9438816315649159, "fpp": 0.95187949880032}, {"s": 18, "d": 90, "pv": 244333333.3333333, "ev": 242333333.3333333, "ac": 252441666.66666666, "cpi": 0.9599577460139306, "spi": 0.9918144611186903, "fp": 0.955922865013774, "fpp": 0.9641873278236914}, {"s": 19, "d": 95, "pv": 246285714.28571427, "ev": 246000000, "ac": 256200000, "cpi": 0.9601873536299765, "spi": 0.9988399071925754, "fp": 0.9710743801652892, "fpp": 0.9722550177095631}, {"s": 20, "d": 100, "pv": 253682539.68253967, "ev": 252894894.89489487, "ac": 263635435.4354354, "cpi": 0.9592598752030399, "spi": 0.9968951556988097, "fp": 0.986709850346214, "fpp": 0.9899645808736718}, {"s": 21, "d": 105, "pv": 260000000, "ev": 260000000, "ac": 271200000, "cpi": 0.9587020648967551, "spi": 1, "fp": 1, "fpp": 1}];
+const nf=(x,d=2)=>x.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d});
+const M=x=>nf(x/1e6)+' M';
+const COP=x=>'$'+Math.round(x).toLocaleString('es-CO');
+const PCT=(x,d=1)=>nf(x*100,d)+'%';
+const $=id=>document.getElementById(id);
+const PV=134337209.3023,EV=119500000,AC=128000000,BAC=260000000;
+const CV=EV-AC,SV=EV-PV,CPI=EV/AC,SPI=EV/PV;
+const EAC=BAC/CPI,ETC=EAC-AC,VAC=BAC-EAC,TCPI=(BAC-EV)/(BAC-AC);
+const FIN=271200000;
+const ICON={Verde:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M5 8.2l2 2L11 6"/></svg>',
+Amarillo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L14.5 13.5h-13z"/><path d="M8 6.5v3.2M8 11.7v.1"/></svg>',
+Rojo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>'};
+const pill=s=>`<span class="pill s-${s}">${ICON[s]}${s}</span>`;
+const tone=s=>({Verde:'var(--good)',Amarillo:'var(--warn)',Rojo:'var(--bad)'}[s]);
+
+/* EVM */
+$('evm-top').innerHTML=[['PV · Valor planificado',PV,'var(--pv)','Trabajo que debía estar hecho'],['EV · Valor ganado',EV,'var(--ev)','Trabajo realmente reconocido'],['AC · Costo real',AC,'var(--ac)','Recursos consumidos'],['BAC · Presupuesto',BAC,'var(--muted)','Línea base original']]
+ .map(([l,v,c,n])=>`<div class="stat"><div class="l"><span class="dot" style="background:${c}"></span>${l}</div><div class="v num">${M(v)}</div><div class="n">${COP(v)} · ${n}</div></div>`).join('');
+const vr=[['CV = EV − AC',CV,M(CV),'Sobrecosto para el avance logrado',CV<0],['SV = EV − PV',SV,M(SV),'Déficit de trabajo presupuestado',SV<0],['CPI = EV / AC',CPI,nf(CPI,3),'Cada $1 gastado rinde $'+nf(CPI,3),CPI<1],['SPI = EV / PV',SPI,nf(SPI,3),'Se logró '+PCT(SPI,2)+' de lo planificado',SPI<1]];
+$('evm-var').innerHTML=vr.map(([l,v,t,n,bad])=>`<div class="stat"><div class="l">${l}</div><div class="v num" style="color:${bad?'var(--bad)':'var(--good)'}">${t}</div><div class="n">${n}</div></div>`).join('');
+$('evm-read').innerHTML=`Lectura conjunta: el gasto ($128,00 M) es menor que lo planificado ($134,34 M), pero eso no es ahorro, es atraso. Frente al trabajo ganado hay un sobrecosto de $8,50 M. Pronóstico por tendencia: EAC ${M(EAC)}, ETC ${M(ETC)}, VAC ${M(VAC)} y TCPI ${nf(TCPI,3)} (se exigiría una eficiencia que el proyecto aún no ha mostrado).`;
+
+/* KPIs */
+const st=(v,g,y)=>v>=g?'Verde':v>=y?'Amarillo':'Rojo';
+const physP=0.5097,physA=0.4483;
+const sobre=(FIN-BAC)/BAC;
+const K=[
+ ['Cronograma','SPI = EV / PV',nf(SPI,3),st(SPI,1,.95),'Meta ≥ 1,00 · Amarillo 0,95 a <1 · Rojo <0,95','Concentrar recursos en la losa y las actividades de ruta crítica.',Math.min(SPI,1)],
+ ['Costos','CPI = EV / AC',nf(CPI,3),st(CPI,1,.95),'Meta ≥ 1,00 · Amarillo 0,95 a <1 · Rojo <0,95','Revisar compras, rendimientos y compromisos por EDT.',Math.min(CPI,1)],
+ ['Avance físico','Obra ponderada vs plan',PCT(physA,2),physA>=physP?'Verde':physP-physA<=.05?'Amarillo':'Rojo','Plan '+PCT(physP,2)+' · Brecha −6,13 pp · Rojo si déficit >5 pp','Verificar cantidades con la interventoría cada semana.',physA/physP],
+ ['Riesgos','Respuestas a tiempo / exigibles','3 / 4 = 75%','Rojo','Meta 100% · Amarillo 80% a <100% · Rojo <80%','R04 vencida al corte: liberar plan de inspección antes de acelerar.',.75],
+ ['Entregables','Aceptados / exigibles','4 / 4 = 100%','Verde','Meta 100% · Amarillo 90% a <100% · Rojo <90%','Verde no compensa el atraso de la losa; mide pendientes, no puntualidad.',1],
+ ['Costo de cierre','(Costo final − BAC) / BAC','+'+PCT(sobre,2),sobre<=0?'Verde':sobre<=.03?'Amarillo':'Rojo','Meta ≤ 0% · Amarillo >0% a 3% · Rojo >3%','Tramitar $11,2 M adicionales ante la entidad; conservar el BAC como referencia.',Math.max(0,1-sobre/0.06)]];
+$('kpis').innerHTML=K.map(k=>`<div class="kpi"><div class="hd"><span class="dim">${k[0]}</span>${pill(k[3])}</div>
+ <div><div class="val num" style="color:${tone(k[3])}">${k[2]}</div><div class="nm">${k[1]}</div></div>
+ <div class="bar" aria-hidden="true"><i style="width:${Math.max(2,Math.min(1,k[6])*100)}%;background:${tone(k[3])}"></i></div>
+ <div class="meta"><span>${k[4]}</span><span><b style="font-weight:500">Respuesta:</b> ${k[5]}</span></div></div>`).join('');
+
+/* generic svg line chart */
+function lineChart(el,o){
+  const w=720,h=o.h||320,m={l:52,r:o.rr||64,t:14,b:34},iw=w-m.l-m.r,ih=h-m.t-m.b;
+  const X=i=>m.l+iw*(i-o.x0)/(o.x1-o.x0),Y=v=>m.t+ih*(1-(v-o.y0)/(o.y1-o.y0));
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${o.label}">`;
+  if(o.shade)s+=`<rect x="${X(o.shade)}" y="${m.t}" width="${X(o.x1)-X(o.shade)}" height="${ih}" fill="var(--shade)"/><text x="${X(o.shade)+6}" y="${m.t+12}">Supuesto tras el corte</text>`;
+  for(let v=o.y0;v<=o.y1+1e-9;v+=o.ys){s+=`<line x1="${m.l}" x2="${w-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${o.yf(v)}</text>`}
+  for(let i=o.x0;i<=o.x1;i+=o.xs){s+=`<text x="${X(i)}" y="${h-10}" text-anchor="middle">${i===0?'S0':'S'+i}</text>`}
+  if(o.ref!=null)s+=`<line x1="${m.l}" x2="${w-m.r}" y1="${Y(o.ref)}" y2="${Y(o.ref)}" stroke="var(--muted)" stroke-dasharray="2 4"/>`;
+  s+=`<line x1="${X(12)}" x2="${X(12)}" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" stroke-width="1"/><text x="${X(12)-6}" y="${m.t+12}" text-anchor="end" style="fill:var(--ink2)">Corte S12</text>`;
+  o.series.forEach(se=>{
+    const d=o.data.map((r,i)=>(i?'L':'M')+X(r.x).toFixed(1)+' '+Y(se.f(r)).toFixed(1)).join('');
+    s+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.25" ${se.dash?'stroke-dasharray="6 4"':''} stroke-linejoin="round"/>`;
+    const e=o.data[o.data.length-1];
+    if(se.lab)s+=`<text x="${X(e.x)+6}" y="${Y(se.f(e))+4+(se.dy||0)}" style="fill:var(--ink2);font-weight:500">${se.lab}</text>`;
+  });
+  const c=o.data.find(r=>r.x===12);
+  o.series.forEach(se=>{s+=`<circle cx="${X(12)}" cy="${Y(se.f(c))}" r="4.5" fill="${se.c}" stroke="var(--surface)" stroke-width="2"/>`});
+  s+=`<line id="cx" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink2)" stroke-dasharray="3 3" style="display:none"/><rect id="hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip"></div>`;
+  el.innerHTML=s;
+  const svg=el.querySelector('svg'),tip=el.querySelector('.tip'),cx=svg.querySelector('#cx'),hit=svg.querySelector('#hit');
+  function mv(ev){const r=svg.getBoundingClientRect();const px=((ev.clientX-r.left)/r.width)*w;
+    let i=Math.round(o.x0+(px-m.l)/iw*(o.x1-o.x0));i=Math.max(o.x0,Math.min(o.x1,i));const d=o.data.find(r=>r.x===i);if(!d)return;
+    cx.setAttribute('x1',X(i));cx.setAttribute('x2',X(i));cx.style.display='';
+    tip.innerHTML=`<b>Semana ${i}</b> · día ${d.d}${i>12?' (supuesto)':''}<br>`+o.series.map(se=>`${se.n}: ${o.tf(se.f(d))}`).join('<br>');
+    tip.style.display='block';const sx=(X(i)/w)*r.width;tip.style.left=Math.min(sx+12,r.width-tip.offsetWidth)+'px';tip.style.top='8px'}
+  hit.addEventListener('pointermove',mv);hit.addEventListener('pointerleave',()=>{tip.style.display='none';cx.style.display='none'});
+}
+const D=[{x:0,d:0,pv:0,ev:0,ac:0,cpi:null,spi:null},...W.map(r=>({x:r.s,d:r.d,pv:r.pv,ev:r.ev,ac:r.ac,cpi:r.cpi,spi:r.spi}))];
+lineChart($('ch-s'),{label:'Curvas acumuladas de PV, EV y AC por semana',x0:0,x1:21,xs:3,y0:0,y1:300e6,ys:50e6,yf:v=>v/1e6+' M',tf:M,shade:12,data:D,
+ series:[{n:'PV',c:'var(--pv)',f:r=>r.pv,dash:1},{n:'EV',c:'var(--ev)',f:r=>r.ev,lab:'PV=EV 260,0',dy:10},{n:'AC',c:'var(--ac)',f:r=>r.ac,lab:'AC 271,2',dy:-6}]});
+lineChart($('ch-i'),{label:'SPI y CPI acumulados por semana',x0:1,x1:21,xs:2,y0:.8,y1:1.05,ys:.05,yf:v=>nf(v,2),tf:v=>nf(v,3),shade:12,ref:1,rr:30,data:D.filter(r=>r.x>=1),
+ series:[{n:'SPI',c:'var(--pv)',f:r=>r.spi},{n:'CPI',c:'var(--ac)',f:r=>r.cpi}]});
+
+/* risks */
+const R=[['R01','Previsto','Lluvias e inundación de excavaciones','Materializado',4,4,2,3,'Residente drenaje','Ejecutada d.34 (límite 35)','Oportuna'],
+['R02','Previsto','Compactación insuficiente del suelo','Materializado',3,4,2,3,'Residente cancha','Ejecutada d.53,67 (límite 54)','Oportuna'],
+['R03','Previsto','Aumento del precio del acero','Materializado',3,3,2,2,'Compras','Ejecutada d.55,83 (límite 56)','Oportuna'],
+['R04','Nuevo','Aceleración afecta la calidad de la losa','Abierto',3,5,3,4,'Residente e interventoría','Límite d.60, vencida','Vencida'],
+['R05','Previsto','Retraso en entrega de luminarias','Abierto',3,4,2,4,'Contratista eléctrico','Límite d.65','No exigible'],
+['R06','Nuevo','Accidente por frentes simultáneos','Abierto',3,5,3,5,'Responsable SST','Límite d.61','No exigible'],
+['R07','Previsto','Baja participación comunitaria','Abierto',3,3,2,3,'Gestor social','Límite d.90','No exigible'],
+['R08','Nuevo','Falta de mantenimiento tras la entrega','Abierto',4,4,3,4,'Entidad receptora','Límite d.100','No exigible']];
+const prio=s=>s>=12?'Alta':s>=6?'Media':'Baja';
+let mode='res';
+function drawRisk(){
+  const ip=mode==='res'?6:4,ii=mode==='res'?7:5;
+  let h='';
+  for(let p=5;p>=1;p--){h+=`<div class="ax">${p}</div>`;
+    for(let i=1;i<=5;i++){const sc=p*i,z=sc>=12?'za':sc>=6?'zm':'zb';
+      h+=`<div class="c ${z}" title="P${p} × I${i} = ${sc}">${R.filter(r=>r[ip]===p&&r[ii]===i).map(r=>`<span class="rid ${r[3]==='Materializado'?'mat':''}">${r[0]}</span>`).join('')}</div>`}}
+  h+='<div></div>'+[1,2,3,4,5].map(i=>`<div class="ax">${i}</div>`).join('');
+  $('mx').innerHTML=h;
+  $('rt').innerHTML=`<thead><tr><th>ID</th><th>Evento</th><th>Estado</th><th class="r">P×I ${mode==='res'?'residual':'inicial'}</th><th>Prior.</th><th>Respuesta y responsable</th></tr></thead><tbody>`+
+   R.map(r=>{const sc=r[ip]*r[ii],p=prio(sc),s=p==='Alta'?'Rojo':p==='Media'?'Amarillo':'Verde';
+    return `<tr><td><span class="rid">${r[0]}</span></td><td>${r[2]}<div class="note">${r[1]}</div></td><td>${r[3]}</td><td class="r num">${r[ip]}×${r[ii]} = ${sc}</td><td>${pill(s).replace(s+'</span>',p+'</span>')}</td><td>${r[8]}<div class="note">${r[9]}</div></td></tr>`}).join('')+'</tbody>';
+}
+drawRisk();
+[['b-res','res'],['b-ini','ini']].forEach(([id,m])=>$(id).onclick=()=>{mode=m;$('b-res').setAttribute('aria-pressed',m==='res');$('b-ini').setAttribute('aria-pressed',m==='ini');drawRisk()});
+
+/* entregables */
+const E=[['D01','Estudios técnicos',8.17,8.17,1,1],['D02','Disponibilidad y gestión predial',10.33,10.33,1,1],['D03','Drenaje funcional',31.17,34.17,1,1],['D04','Canales despejados',21.67,21.67,1,1],['D05','Cancha equipada y demarcada',76.33,78.33,0,0],['D06','Iluminación instalada',78.5,80.5,0,0],['D07','Cerramiento terminado',102.83,102.83,0,0],['D08','Cuatro jornadas comunitarias',102.83,102.83,0,0],['D09','Cierre y transferencia',104.83,104.83,0,0]];
+$('et').innerHTML='<thead><tr><th>ID</th><th>Entregable</th><th class="r">Fin base</th><th class="r">Aceptación</th><th>Estado d.60</th></tr></thead><tbody>'+E.map(e=>`<tr><td><span class="rid">${e[0]}</span></td><td>${e[1]}</td><td class="r num">${nf(e[2])}</td><td class="r num">${nf(e[3])}${e[3]>e[2]?` <span style="color:var(--bad)">(+${nf(e[3]-e[2])})</span>`:''}</td><td>${e[4]?pill('Verde').replace('Verde</span>','Aceptado</span>'):'<span class="chip">No exigible</span>'}</td></tr>`).join('')+'</tbody>';
+
+/* avance físico */
+const bars=(t,a,p)=>`<div><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="font-weight:500">${t}</b><span class="num" style="color:var(--ink2)">Real ${PCT(a,2)} · Plan ${PCT(p,2)}</span></div>
+ <div class="bar" style="height:12px;margin-top:6px"><i style="width:${p*100}%;background:var(--pv);opacity:.35"></i><i style="width:${a*100}%;background:var(--ev);height:6px;top:3px;bottom:auto"></i></div></div>`;
+$('phys').innerHTML=bars('Obra física ponderada',physA,physP)+bars('Losa deportiva (EDT 1.1.6)',.30,.5698)+
+ `<div class="legend"><span><i style="border-color:var(--pv);opacity:.45;border-top-width:8px"></i>Plan</span><span><i style="border-color:var(--ev)"></i>Real</span></div>`+
+ `<div class="stat"><div class="l">Brecha física</div><div class="v num" style="color:var(--bad)">−6,13 pp</div><div class="n">Avance global ganado: ${PCT(EV/BAC,2)} del BAC · planificado ${PCT(PV/BAC,2)}</div></div>`;
+
+/* decisiones */
+const DE=[['Reforzar la losa','Dos oficiales más a los ocho previstos, suministro asegurado y frentes coordinados. Saldo en 8,17 días.','Losa termina día 68,17: recupera 1,87 días.','R04, R06'],
+['Prefabricar el cerramiento','Fabricación fuera de sitio y cuadrilla de montaje de 4 a 6 personas.','Montaje de 6,17 días en vez de 8,17: recupera 2 días.','R05'],
+['Controlar el costo restante','Revisar compras, rendimientos y compromisos por EDT. Saldo estimado $143,20 M.','Costo final $271,20 M. Solicitar $11,20 M a la entidad.','R03'],
+['Completar la recepción','Verificar equipos, losa, drenaje, iluminación, cerramiento, jornadas y expediente.','Evita cerrar solo por los hitos principales de la red.','R08']];
+$('dec').innerHTML=DE.map(d=>`<div><h3>${d[0]}</h3><div>${d[1]}</div><div class="ef">${d[2]}</div><div class="note">Riesgos vinculados: ${d[3]}</div></div>`).join('');
+const HT=[['Losa',66.17,68.17],['Iluminación',78.5,80.5],['Inicio montaje cerramiento',94.67,96.67],['Cerramiento completo',102.83,102.83],['Jornadas comunitarias',102.83,102.83],['Cierre',104.83,104.83]];
+$('ht').innerHTML='<thead><tr><th>Hito</th><th class="r">Base</th><th class="r">Con control</th><th class="r">Dif.</th></tr></thead><tbody>'+HT.map(h=>`<tr><td>${h[0]}</td><td class="r num">${nf(h[1])}</td><td class="r num">${nf(h[2])}</td><td class="r num">${h[2]>h[1]?'+':''}${nf(h[2]-h[1])}</td></tr>`).join('')+`<tr><td><b style="font-weight:600">Sin acciones: cierre</b></td><td class="r num">104,83</td><td class="r num">108,70</td><td class="r num" style="color:var(--bad)">+3,87</td></tr></tbody>`;
+$('ft').innerHTML='<tbody>'+[['EAC tendencial (BAC / CPI)',EAC],['ETC tendencial',ETC],['VAC tendencial',VAC],['Costo final con medidas',FIN],['Desviación frente al BAC',-(FIN-BAC)]].map(r=>`<tr><td>${r[0]}</td><td class="r num">${nf(r[1]/1e6)}</td></tr>`).join('')+`<tr><td>TCPI para mantener el BAC</td><td class="r num">${nf(TCPI,3)}</td></tr></tbody>`;
+
+/* cierre */
+const C=[['Cancha múltiple','Completada y aceptada, día 78,33','Verde'],['Iluminación','Aceptada, día 80,50','Verde'],['Cerramiento','Aceptado, día 102,83','Verde'],['Drenaje y canales','Recibidos en días 34,17 y 21,67','Verde'],['Participación y transferencia','Cuatro jornadas, expediente y plan de mantenimiento','Verde'],['Plazo técnico (104,83 días)','Cumplido tras recuperar 3,87 días','Verde'],['Presupuesto ($260 M)','No cumplido: sobrecosto de $11,20 M','Rojo'],['Beneficios sociales','Pendientes de medir en operación','Amarillo']];
+$('ct').innerHTML='<thead><tr><th>Objetivo</th><th>Resultado del escenario</th><th>Estado</th></tr></thead><tbody>'+C.map(c=>`<tr><td>${c[0]}</td><td>${c[1]}</td><td>${c[2]==='Verde'?pill('Verde').replace('Verde</span>','Cumplido</span>'):c[2]==='Rojo'?pill('Rojo').replace('Rojo</span>','No cumplido</span>'):pill('Amarillo').replace('Amarillo</span>','Pendiente</span>')}</td></tr>`).join('')+'</tbody>';
+
+/* variación final bars */
+const V=[['Drenaje pluvial',3.0],['Losa deportiva',3.0],['Otras variaciones',2.2],['Relleno seleccionado',1.2],['Cerramiento tubular',1.0],['Malla electrosoldada',0.8]];
+(function(){const w=560,rh=40,h=V.length*rh+34,l=140,iw=w-l-60;let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Variación final de costo por origen">`;
+ for(let v=0;v<=3;v++){const x=l+iw*v/3.2;s+=`<line x1="${x}" x2="${x}" y1="0" y2="${h-26}" stroke="var(--grid)"/><text x="${x}" y="${h-8}" text-anchor="middle">${v} M</text>`}
+ V.forEach((r,i)=>{const y=i*rh+6,bw=iw*r[1]/3.2;s+=`<text x="${l-10}" y="${y+16}" text-anchor="end" style="fill:var(--ink2)">${r[0]}</text><path d="M${l} ${y}h${bw-4}a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-${bw-4}z" fill="var(--ac)"/><text x="${l+bw+8}" y="${y+18}" style="fill:var(--ink);font-weight:500">${nf(r[1],1)} M</text>`});
+ $('ch-v').innerHTML=s+'</svg>'})();
+
+/* lecciones */
+const L=[['Lluvia y compactación trasladaron cuatro días al inicio de la losa.','Incorporar ventanas climáticas, drenaje temporal y verificación del suelo antes de comprometer fechas. Resp.: coordinación y residente.'],
+['AC menor que PV coexistió con sobrecosto.','Comparar gasto con valor ganado del mismo alcance y exigir codificación EDT. Resp.: control de costos.'],
+['Cuatro entregables aceptados no evitaron un SPI bajo.','Combinar aceptación por hitos con avance de actividades en proceso. Resp.: interventoría.'],
+['Las relaciones SS y FF condicionan el efecto de los atrasos.','Recalcular la red por eventos de inicio y fin; completar los enlaces de recepción. Resp.: programación.'],
+['La aceleración genera nuevos riesgos.','Vincular los recursos extra a controles de calidad y seguridad; medir rendimiento semanal. Resp.: residente y SST.'],
+['El plazo se recuperó con costo adicional.','Evaluar costo, tiempo y calidad juntos; documentar qué objetivo se recupera y cuál sigue incumplido. Resp.: coordinación.']];
+$('lec').innerHTML=L.map(l=>`<div><b>${l[0]}</b><span>${l[1]}</span></div>`).join('');
+
+/* tabla semanal */
+$('wt').innerHTML='<thead><tr><th>Sem.</th><th class="r">Día</th><th class="r">PV (M)</th><th class="r">EV (M)</th><th class="r">AC (M)</th><th class="r">SPI</th><th class="r">CPI</th><th class="r">Físico real</th><th class="r">Físico plan</th></tr></thead><tbody>'+W.map(r=>`<tr><td>S${r.s}${r.s>12?' *':''}</td><td class="r num">${r.d}</td><td class="r num">${nf(r.pv/1e6)}</td><td class="r num">${nf(r.ev/1e6)}</td><td class="r num">${nf(r.ac/1e6)}</td><td class="r num">${nf(r.spi,3)}</td><td class="r num">${nf(r.cpi,3)}</td><td class="r num">${PCT(r.fp)}</td><td class="r num">${PCT(r.fpp)}</td></tr>`).join('')+'</tbody><caption style="caption-side:bottom;text-align:left;font-size:12px;color:var(--muted);padding-top:6px">* Semanas posteriores al corte: resultado supuesto del plan correctivo.</caption>';
+</script>
