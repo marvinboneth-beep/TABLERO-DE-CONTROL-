@@ -35,6 +35,8 @@ header.top p{margin:6px 0 0;opacity:.85;max-width:60ch}
 .stamp{font-family:var(--f-mono);font-size:12px;border:1px solid currentColor;padding:6px 10px;border-radius:3px;opacity:.9;display:flex;flex-direction:column;gap:2px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
 .tabs button,.seg button{font:inherit;font-size:12.5px;padding:6px 12px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);border-radius:3px;cursor:pointer}
+header.top .tabs button{background:transparent;color:var(--accent-ink);border-color:rgba(255,255,255,.55)}
+header.top .tabs button[aria-pressed="true"]{background:#fff;color:#14181d;border-color:#fff;font-weight:600}
 .tabs button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button:focus-visible,summary:focus-visible{outline:2px solid var(--pv);outline-offset:2px}
 .sec{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0}
@@ -91,18 +93,23 @@ td.r,th.r{text-align:right}
 @media(max-width:700px){.lec>div{grid-template-columns:1fr}}
 .lec b{font-weight:500}
 details summary{cursor:pointer;color:var(--ink2);font-size:12.5px}
+.sum .full-only{display:none!important}
+.sum .kpi .meta,.sum #evm-read{display:none}
+.sum-only{display:none}.sum .sum-only{display:block}
+.sumnote{border-left:4px solid var(--accent);background:var(--surface);border-radius:3px;padding:12px 16px;border:1px solid var(--line);border-left:4px solid var(--accent)}
+.sumnote b{font-weight:600}
 footer{font-size:12px;color:var(--muted);max-width:90ch}
 </style>
 
-<div class="wrap">
+<div class="wrap sum" id="wrap">
 <header class="top">
   <div>
-    <div class="eyebrow" style="color:inherit;opacity:.75">Tablero de control · Maestría en Gerencia de Proyectos</div>
+    <div class="eyebrow" style="color:inherit;opacity:.75">Tablero de control · Gerencia de Proyectos</div>
     <h1>Escenario deportivo Luz del Mundo</h1>
-    <p>Construcción y adecuación de una cancha múltiple en Santa Marta, Magdalena. Seguimiento al corte, pronóstico y cierre.</p>
-    <p> Marvin Boneth Robles.</p>
+    <p>Construcción y adecuación de una cancha múltiple en Santa Marta, Magdalena. Seguimiento al corte, pronóstico y cierre simulado.</p>
   </div>
   <div class="stamp"><span>CORTE: DÍA HÁBIL 60 · SEMANA 12</span><span>BAC $260.000.000 COP · 22 ACTIVIDADES</span></div>
+  <div class="tabs" role="group" aria-label="Vista del tablero"><button id="v-sum" aria-pressed="true">Vista resumen</button><button id="v-full" aria-pressed="false">Vista completa</button></div>
 </header>
 
 <section class="sec" aria-labelledby="h-evm">
@@ -133,7 +140,8 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 </section>
 </div>
 
-<section class="sec" aria-labelledby="h-r">
+<div class="sum-only sumnote"><b>Decisión al corte:</b> liberar el plan de calidad, reforzar la losa y prefabricar el cerramiento. Con estas medidas el cierre se mantiene en el día hábil 104,83 y el costo final estimado es $271,20 M (+4,31% sobre el BAC). Riesgos residuales altos abiertos: R04, R06 y R08. Pulsa <b>Vista completa</b> para ver riesgos, entregables, decisiones, cierre y lecciones aprendidas.</div>
+<section class="sec full-only" aria-labelledby="h-r">
   <div><div class="eyebrow">Riesgos</div><h2 id="h-r">Matriz de riesgos actualizada</h2>
   <p class="sub">Ocho riesgos: 5 previstos y 3 nuevos. Tres ya se materializaron (R01 a R03). Al corte quedan tres riesgos altos residuales abiertos (R04, R06 y R08).</p></div>
   <div class="seg tabs" role="group" aria-label="Valoración"><button id="b-res" aria-pressed="true">Residual</button><button id="b-ini" aria-pressed="false">Inicial</button></div>
@@ -146,7 +154,7 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
   </div>
 </section>
 
-<div class="grid g2">
+<div class="grid g2 full-only">
 <section class="sec" aria-labelledby="h-e">
   <div><div class="eyebrow">Cumplimiento de entregables</div><h2 id="h-e">Aceptación al día 60</h2></div>
   <div class="tbl"><table id="et"></table></div>
@@ -159,7 +167,7 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 </section>
 </div>
 
-<section class="sec" aria-labelledby="h-d">
+<section class="sec full-only" aria-labelledby="h-d">
   <div><div class="eyebrow">Análisis de desviaciones y decisiones</div><h2 id="h-d">Decisiones correctivas</h2>
   <p class="sub">Sin medidas el proyecto terminaría en el día 108,70, 3,87 días después del hito base (104,83). Con las acciones se conserva la fecha de cierre.</p></div>
   <div class="dec" id="dec"></div>
@@ -169,7 +177,7 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
   </div>
 </section>
 
-<div class="grid g2">
+<div class="grid g2 full-only">
 <section class="sec" aria-labelledby="h-c">
   <div><div class="eyebrow">Cierre y evaluación</div><h2 id="h-c">Cumplimiento de objetivos</h2></div>
   <div class="tbl"><table id="ct"></table></div>
@@ -182,12 +190,12 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 </section>
 </div>
 
-<section class="sec" aria-labelledby="h-l">
+<section class="sec full-only" aria-labelledby="h-l">
   <div><div class="eyebrow">Lecciones aprendidas</div><h2 id="h-l">Qué se aprende y quién lo aplica</h2></div>
   <div class="lec" id="lec"></div>
 </section>
 
-<details class="sec"><summary>Ver datos semanales en tabla</summary><div class="tbl"><table id="wt"></table></div></details>
+<details class="sec full-only"><summary>Ver datos semanales en tabla</summary><div class="tbl"><table id="wt"></table></div></details>
 
 <footer>Todos los datos de ejecución, costos, avances y cierre son supuestos académicos para el ejercicio; no provienen de actas, facturas ni registros de una obra real. Umbrales de semáforo propuestos para esta actividad, no prescritos por PMI, ISO ni PRINCE2. Cifras en COP.</footer>
 </div>
@@ -209,6 +217,8 @@ Rojo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2
 const pill=s=>`<span class="pill s-${s}">${ICON[s]}${s}</span>`;
 const tone=s=>({Verde:'var(--good)',Amarillo:'var(--warn)',Rojo:'var(--bad)'}[s]);
 
+function setView(s){const w=$('wrap');w.classList.toggle('sum',s);$('v-sum').setAttribute('aria-pressed',s);$('v-full').setAttribute('aria-pressed',!s)}
+$('v-sum').onclick=()=>setView(true);$('v-full').onclick=()=>setView(false);
 /* EVM */
 $('evm-top').innerHTML=[['PV · Valor planificado',PV,'var(--pv)','Trabajo que debía estar hecho'],['EV · Valor ganado',EV,'var(--ev)','Trabajo realmente reconocido'],['AC · Costo real',AC,'var(--ac)','Recursos consumidos'],['BAC · Presupuesto',BAC,'var(--muted)','Línea base original']]
  .map(([l,v,c,n])=>`<div class="stat"><div class="l"><span class="dot" style="background:${c}"></span>${l}</div><div class="v num">${M(v)}</div><div class="n">${COP(v)} · ${n}</div></div>`).join('');
